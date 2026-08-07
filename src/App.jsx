@@ -108,7 +108,7 @@ export default function BirthdaySurprise() {
     setStep('chatbot');
     triggerConfetti();
     setChatHistory([
-      { sender: 'bot', text: "Je suis tellement content(e) que tu aies ouvert cette porte... 🖤" },
+      { sender: 'bot', text: "Je suis tellement content que tu aies ouvert cette porte... 🖤" },
       { sender: 'bot', text: CHAT_QUESTIONS[0].botMsg }
     ]);
   };
