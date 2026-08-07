@@ -1,20 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Sparkles, AlertTriangle, ShieldCheck, Send, MessageCircle, RefreshCw, CheckCircle2, Music } from 'lucide-react';
+import { Heart, Sparkles, AlertTriangle, ShieldCheck, Send, MessageCircle, Music, CheckCircle2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 // --- CONFIGURATION ---
-// 1. Remplace par ton numéro WhatsApp (format international, sans + ni 00)
 const YOUR_WHATSAPP_NUMBER = "237694865872"; 
 
-// 2. Chemin vers ton image de fond (ex: une photo de vous deux floutée, ou une image abstraite sombre)
-// Importe l'image si tu utilises Webpack/Vite :
-// import backgroundImage from './assets/ambiance_danse.jpg'; 
-// Ou utilise une URL directe/chemin public :
-const BACKGROUND_IMAGE_URL = "/christy.jpg"; // Exemple temporaire
+// Image globale pour toutes les étapes
+const BACKGROUND_IMAGE_URL = "/christy.jpg";
 
-
-// Questions du Chatbot
 const CHAT_QUESTIONS = [
   {
     id: 'reason',
@@ -43,34 +37,34 @@ const CHAT_QUESTIONS = [
   }
 ];
 
-// Variantes d'animation pour le rebond lent et sensuel du bouton preloader
 const sensualBounceVariants = {
   animate: {
-    y: [0, -15, 0], // Rebondit légèrement vers le haut
-    scale: [1, 1.03, 1], // S'agrandit très légèrement
-    opacity: [0.7, 1, 0.7], // Respire doucement
+    y: [0, -12, 0],
+    scale: [1, 1.02, 1],
+    boxShadow: [
+      "0px 0px 15px rgba(225, 29, 72, 0.2)",
+      "0px 0px 30px rgba(225, 29, 72, 0.5)",
+      "0px 0px 15px rgba(225, 29, 72, 0.2)"
+    ],
     transition: {
-      duration: 3.5, // Très lent
+      duration: 3.2,
       ease: "easeInOut",
-      repeat: Infinity, // En boucle
+      repeat: Infinity,
     }
   }
 };
 
 export default function BirthdaySurprise() {
-  // AJOUT DE L'ÉTAT LOADING POUR LE PRELOADER
-  const [step, setStep] = useState('loading'); // 'loading' | 'welcome' | 'message' | 'saved' | 'chatbot' | 'summary' | 'destroyed'
-  const [countdown, setCountdown] = useState(10);
+  const [step, setStep] = useState('loading');
+  const [countdown, setCountdown] = useState(90);
   const [isCounting, setIsCounting] = useState(false);
 
-  // État du Chatbot
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   const [answers, setAnswers] = useState({});
   const [currentInput, setCurrentInput] = useState('');
   const [chatHistory, setChatHistory] = useState([]);
   const chatEndRef = useRef(null);
 
-  // Déclencher les confettis
   const triggerConfetti = () => {
     confetti({
       particleCount: 80,
@@ -80,7 +74,6 @@ export default function BirthdaySurprise() {
     });
   };
 
-  // Compte à rebours
   useEffect(() => {
     let timer;
     if (isCounting && countdown > 0) {
@@ -92,13 +85,12 @@ export default function BirthdaySurprise() {
     return () => clearInterval(timer);
   }, [isCounting, countdown]);
 
-  // Scroll automatique dans le chat
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatHistory]);
 
   const handleStartExperience = () => {
-    setStep('welcome'); // Passe à l'écran d'accueil après le preloader
+    setStep('welcome');
   };
 
   const handleStartMessage = () => {
@@ -115,9 +107,8 @@ export default function BirthdaySurprise() {
   const handleStartChatbot = () => {
     setStep('chatbot');
     triggerConfetti();
-    // Message de bienvenue du bot
     setChatHistory([
-      { sender: 'bot', text: "Je suis tellement content que tu aies ouvert cette porte... 🖤" },
+      { sender: 'bot', text: "Je suis tellement content(e) que tu aies ouvert cette porte... 🖤" },
       { sender: 'bot', text: CHAT_QUESTIONS[0].botMsg }
     ]);
   };
@@ -129,16 +120,13 @@ export default function BirthdaySurprise() {
     const currentQ = CHAT_QUESTIONS[currentQuestionIdx];
     const userMsg = currentInput.trim();
 
-    // Enregistrer la réponse
     const updatedAnswers = { ...answers, [currentQ.id]: userMsg };
     setAnswers(updatedAnswers);
 
-    // Mettre à jour l'historique du chat avec la réponse utilisateur
     const newHistory = [...chatHistory, { sender: 'user', text: userMsg }];
     setChatHistory(newHistory);
     setCurrentInput('');
 
-    // Passer à la question suivante ou finir
     if (currentQuestionIdx < CHAT_QUESTIONS.length - 1) {
       const nextIdx = currentQuestionIdx + 1;
       setCurrentQuestionIdx(nextIdx);
@@ -149,7 +137,6 @@ export default function BirthdaySurprise() {
         ]);
       }, 600);
     } else {
-      // Fin du questionnaire
       setTimeout(() => {
         setChatHistory((prev) => [
           ...prev,
@@ -160,7 +147,6 @@ export default function BirthdaySurprise() {
     }
   };
 
-  // Préparer le message WhatsApp
   const formatWhatsAppMessage = () => {
     let text = `✨ *RÉPONSES POUR NOS 20 ANS* ✨\n\n`;
     text += `🖤 *Raison séparation:* ${answers.reason || ''}\n\n`;
@@ -174,40 +160,40 @@ export default function BirthdaySurprise() {
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 flex items-center justify-center p-4 font-sans select-none overflow-hidden relative">
       
-      {/* --- PRELOADER (STEP: LOADING) --- */}
+      {/* --- FOND PANNORAMIQUE DE MÊME STYLE POUR TOUTES LES ÉTAPES --- */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center filter blur-sm scale-105 opacity-70 pointer-events-none"
+        style={{ backgroundImage: `url(${BACKGROUND_IMAGE_URL})` }}
+      />
+      
+      {/* Voile sombre pour accentuer le contraste du texte et des cartes */}
+      <div className="absolute inset-0 bg-neutral-950/40 pointer-events-none" />
+
+      {/* --- PRELOADER --- */}
       <AnimatePresence>
         {step === 'loading' && (
           <motion.div
             key="preloader"
             initial={{ opacity: 1 }}
-            exit={{ opacity: 0, transition: { duration: 1.2, ease: "easeInOut" } }}
+            exit={{ opacity: 0, transition: { duration: 0.8, ease: "easeInOut" } }}
             className="absolute inset-0 z-50 flex items-center justify-center p-6 text-center"
           >
-            {/* Image de fond floutée et assombrie */}
-            <div 
-              className="absolute inset-0 bg-cover bg-center filter blur-lg scale-110 opacity-30"
-              style={{ backgroundImage: `url(${BACKGROUND_IMAGE_URL})` }}
-            />
-            {/* Overlay sombre dégradé pour l'intimité */}
-            <div className="absolute inset-0 bg-gradient-to-b from-neutral-950 via-neutral-950/90 to-neutral-950" />
-
-            {/* Contenu centré */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.5, duration: 1 }}
-              className="relative z-10 flex flex-col items-center gap-10"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+              className="relative z-10 flex flex-col items-center gap-8 max-w-sm"
             >
-              <div className="space-y-3">
+              <div className="space-y-2 bg-neutral-950/60 p-4 rounded-2xl border border-neutral-800/50 backdrop-blur-md">
                 <motion.div
-                  animate={{ rotate: [0, 10, -10, 0] }}
+                  animate={{ rotate: [0, 8, -8, 0] }}
                   transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-                  className="inline-block p-4 rounded-full bg-rose-950/30 border border-rose-900/50"
+                  className="inline-block p-3 rounded-full bg-rose-950/50 border border-rose-800/60 mb-1"
                 >
-                  <Music className="w-10 h-10 text-rose-400" />
+                  <Music className="w-7 h-7 text-rose-400" />
                 </motion.div>
-                <h1 className="text-3xl font-extralight tracking-widest text-neutral-200 serif italic">
-                  L'ambiance s'installe...
+                <h1 className="text-2xl font-light tracking-wide text-neutral-100 italic font-serif">
+                  Un instant particulier...
                 </h1>
               </div>
 
@@ -215,34 +201,33 @@ export default function BirthdaySurprise() {
               <motion.button
                 variants={sensualBounceVariants}
                 animate="animate"
-                whileHover={{ scale: 1.05, opacity: 1, transition: {duration: 0.3} }}
+                whileHover={{ scale: 1.04, transition: { duration: 0.2 } }}
+                whileTap={{ scale: 0.96 }}
                 onClick={handleStartExperience}
-                className="px-10 py-5 bg-gradient-to-r from-rose-950 via-neutral-900 to-rose-950 border border-rose-800/60 text-rose-100 rounded-full font-light text-base uppercase tracking-widest flex items-center justify-center gap-3 shadow-2xl shadow-rose-950/50 backdrop-blur-sm"
+                className="w-full py-4 px-6 bg-gradient-to-r from-neutral-900/90 via-rose-950/90 to-neutral-900/90 border border-rose-700/80 text-rose-100 rounded-2xl font-medium text-sm tracking-wider uppercase flex items-center justify-center gap-3 backdrop-blur-md shadow-2xl"
               >
-                <Heart className="w-5 h-5 text-rose-400 fill-rose-400/20" />
+                <Heart className="w-4 h-4 text-rose-400 fill-rose-400/40 animate-pulse" />
                 Prête pour la dernière danse ?
-                <Heart className="w-5 h-5 text-rose-400 fill-rose-400/20" />
+                <Heart className="w-4 h-4 text-rose-400 fill-rose-400/40 animate-pulse" />
               </motion.button>
               
-              <p className="text-xs text-neutral-600 font-mono tracking-wider absolute bottom-10">
-                08 AOÛT • 20 ANS • UN INSTANT POUR NOUS
-              </p>
+              <span className="text-[10px] font-mono tracking-widest text-neutral-300 bg-neutral-950/70 px-3 py-1 rounded-full border border-neutral-800">
+                08 AOÛT • 20 ANS
+              </span>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* --- CONTENU PRINCIPAL (CARTE) --- */}
-      {/* On cache la carte pendant le chargement pour éviter les flashs visuels */}
+      {/* --- CARTE PRINCIPALE --- */}
       <motion.div 
-        className={`w-full max-w-md bg-neutral-900/90 border border-neutral-800 rounded-3xl p-6 shadow-2xl backdrop-blur-xl relative overflow-hidden flex flex-col min-h-[520px] justify-between transition-opacity duration-1000 ${step === 'loading' ? 'opacity-0' : 'opacity-100'}`}
+        className={`w-full max-w-md bg-neutral-900/90 border border-neutral-800 rounded-3xl p-6 shadow-2xl backdrop-blur-xl relative z-10 overflow-hidden flex flex-col min-h-[520px] justify-between transition-opacity duration-700 ${step === 'loading' ? 'opacity-0' : 'opacity-100'}`}
         initial={false}
-        animate={step !== 'loading' ? { y: 0, opacity: 1 } : { y: 50, opacity: 0 }}
+        animate={step !== 'loading' ? { y: 0, opacity: 1 } : { y: 30, opacity: 0 }}
       >
-        
         <AnimatePresence mode="wait">
           
-          {/* ÉTAPE 1 : Accueil (Welcome) */}
+          {/* ÉTAPE 1 : Accueil */}
           {step === 'welcome' && (
             <motion.div
               key="welcome"
@@ -364,7 +349,6 @@ export default function BirthdaySurprise() {
                 Si tu as pris la peine de cliquer sur ce bouton avant les 20 secondes, c'est peut-être la preuve qu'au fond... tu ne m'as pas tout à fait oublié toi non plus 🤫🖤
               </p>
 
-              {/* BOUTON SECONDE CHANCE */}
               <div className="pt-2 flex flex-col gap-3">
                 <motion.button
                   whileHover={{ scale: 1.03 }}
@@ -388,7 +372,6 @@ export default function BirthdaySurprise() {
               exit={{ opacity: 0, scale: 0.98 }}
               className="flex flex-col h-[480px] justify-between"
             >
-              {/* En-tête du Chat */}
               <div className="border-b border-neutral-800 pb-3 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping" />
@@ -399,7 +382,6 @@ export default function BirthdaySurprise() {
                 </span>
               </div>
 
-              {/* Barre de progression */}
               <div className="w-full bg-neutral-800 h-1 rounded-full overflow-hidden my-2">
                 <motion.div
                   className="bg-rose-500 h-full"
@@ -409,7 +391,6 @@ export default function BirthdaySurprise() {
                 />
               </div>
 
-              {/* Historique des messages */}
               <div className="flex-1 overflow-y-auto space-y-3 py-3 pr-1 text-xs leading-relaxed">
                 {chatHistory.map((msg, idx) => (
                   <motion.div
@@ -432,7 +413,6 @@ export default function BirthdaySurprise() {
                 <div ref={chatEndRef} />
               </div>
 
-              {/* Champ de saisie */}
               <form onSubmit={handleSendAnswer} className="pt-2 border-t border-neutral-800 flex gap-2">
                 <input
                   type="text"
@@ -492,7 +472,7 @@ export default function BirthdaySurprise() {
             </motion.div>
           )}
 
-          {/* ÉTAPE 6 : Détruit (Destroyed) */}
+          {/* ÉTAPE 6 : Détruit */}
           {step === 'destroyed' && (
             <motion.div
               key="destroyed"
