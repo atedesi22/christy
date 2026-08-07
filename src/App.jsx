@@ -65,7 +65,7 @@ const sensualBounceVariants = {
 
 export default function BirthdaySurprise() {
   const [step, setStep] = useState('loading');
-  const [countdown, setCountdown] = useState(90);
+  const [countdown, setCountdown] = useState(40);
   const [isCounting, setIsCounting] = useState(false);
 
   // Audio State
