@@ -1,7 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Sparkles, AlertTriangle, ShieldCheck, Send, MessageCircle, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { Heart, Sparkles, AlertTriangle, ShieldCheck, Send, MessageCircle, RefreshCw, CheckCircle2, Music } from 'lucide-react';
 import confetti from 'canvas-confetti';
+
+// --- CONFIGURATION ---
+// 1. Remplace par ton numéro WhatsApp (format international, sans + ni 00)
+const YOUR_WHATSAPP_NUMBER = "237694865872"; 
+
+// 2. Chemin vers ton image de fond (ex: une photo de vous deux floutée, ou une image abstraite sombre)
+// Importe l'image si tu utilises Webpack/Vite :
+// import backgroundImage from './assets/ambiance_danse.jpg'; 
+// Ou utilise une URL directe/chemin public :
+const BACKGROUND_IMAGE_URL = "/christy.jpg"; // Exemple temporaire
+
 
 // Questions du Chatbot
 const CHAT_QUESTIONS = [
@@ -32,9 +43,24 @@ const CHAT_QUESTIONS = [
   }
 ];
 
+// Variantes d'animation pour le rebond lent et sensuel du bouton preloader
+const sensualBounceVariants = {
+  animate: {
+    y: [0, -15, 0], // Rebondit légèrement vers le haut
+    scale: [1, 1.03, 1], // S'agrandit très légèrement
+    opacity: [0.7, 1, 0.7], // Respire doucement
+    transition: {
+      duration: 3.5, // Très lent
+      ease: "easeInOut",
+      repeat: Infinity, // En boucle
+    }
+  }
+};
+
 export default function BirthdaySurprise() {
-  const [step, setStep] = useState('welcome'); // 'welcome' | 'message' | 'saved' | 'chatbot' | 'summary' | 'destroyed'
-  const [countdown, setCountdown] = useState(20);
+  // AJOUT DE L'ÉTAT LOADING POUR LE PRELOADER
+  const [step, setStep] = useState('loading'); // 'loading' | 'welcome' | 'message' | 'saved' | 'chatbot' | 'summary' | 'destroyed'
+  const [countdown, setCountdown] = useState(10);
   const [isCounting, setIsCounting] = useState(false);
 
   // État du Chatbot
@@ -43,9 +69,6 @@ export default function BirthdaySurprise() {
   const [currentInput, setCurrentInput] = useState('');
   const [chatHistory, setChatHistory] = useState([]);
   const chatEndRef = useRef(null);
-
-  // Ton numéro de téléphone WhatsApp au format international (ex: "33612345678" ou "2376XXXXXXXX")
-  const YOUR_WHATSAPP_NUMBER = "237694865872"; 
 
   // Déclencher les confettis
   const triggerConfetti = () => {
@@ -74,6 +97,10 @@ export default function BirthdaySurprise() {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatHistory]);
 
+  const handleStartExperience = () => {
+    setStep('welcome'); // Passe à l'écran d'accueil après le preloader
+  };
+
   const handleStartMessage = () => {
     setStep('message');
     setIsCounting(true);
@@ -90,7 +117,7 @@ export default function BirthdaySurprise() {
     triggerConfetti();
     // Message de bienvenue du bot
     setChatHistory([
-      { sender: 'bot', text: "Je suis tellement content(e) que tu aies ouvert cette porte... 🖤" },
+      { sender: 'bot', text: "Je suis tellement content que tu aies ouvert cette porte... 🖤" },
       { sender: 'bot', text: CHAT_QUESTIONS[0].botMsg }
     ]);
   };
@@ -145,12 +172,77 @@ export default function BirthdaySurprise() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-neutral-100 flex items-center justify-center p-4 font-sans select-none">
-      <div className="w-full max-w-md bg-neutral-900/90 border border-neutral-800 rounded-3xl p-6 shadow-2xl backdrop-blur-xl relative overflow-hidden flex flex-col min-h-[520px] justify-between">
+    <div className="min-h-screen bg-neutral-950 text-neutral-100 flex items-center justify-center p-4 font-sans select-none overflow-hidden relative">
+      
+      {/* --- PRELOADER (STEP: LOADING) --- */}
+      <AnimatePresence>
+        {step === 'loading' && (
+          <motion.div
+            key="preloader"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0, transition: { duration: 1.2, ease: "easeInOut" } }}
+            className="absolute inset-0 z-50 flex items-center justify-center p-6 text-center"
+          >
+            {/* Image de fond floutée et assombrie */}
+            <div 
+              className="absolute inset-0 bg-cover bg-center filter blur-lg scale-110 opacity-30"
+              style={{ backgroundImage: `url(${BACKGROUND_IMAGE_URL})` }}
+            />
+            {/* Overlay sombre dégradé pour l'intimité */}
+            <div className="absolute inset-0 bg-gradient-to-b from-neutral-950 via-neutral-950/90 to-neutral-950" />
+
+            {/* Contenu centré */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.5, duration: 1 }}
+              className="relative z-10 flex flex-col items-center gap-10"
+            >
+              <div className="space-y-3">
+                <motion.div
+                  animate={{ rotate: [0, 10, -10, 0] }}
+                  transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+                  className="inline-block p-4 rounded-full bg-rose-950/30 border border-rose-900/50"
+                >
+                  <Music className="w-10 h-10 text-rose-400" />
+                </motion.div>
+                <h1 className="text-3xl font-extralight tracking-widest text-neutral-200 serif italic">
+                  L'ambiance s'installe...
+                </h1>
+              </div>
+
+              {/* BOUTON REBONDISSANT SENSUEL */}
+              <motion.button
+                variants={sensualBounceVariants}
+                animate="animate"
+                whileHover={{ scale: 1.05, opacity: 1, transition: {duration: 0.3} }}
+                onClick={handleStartExperience}
+                className="px-10 py-5 bg-gradient-to-r from-rose-950 via-neutral-900 to-rose-950 border border-rose-800/60 text-rose-100 rounded-full font-light text-base uppercase tracking-widest flex items-center justify-center gap-3 shadow-2xl shadow-rose-950/50 backdrop-blur-sm"
+              >
+                <Heart className="w-5 h-5 text-rose-400 fill-rose-400/20" />
+                Prête pour la dernière danse ?
+                <Heart className="w-5 h-5 text-rose-400 fill-rose-400/20" />
+              </motion.button>
+              
+              <p className="text-xs text-neutral-600 font-mono tracking-wider absolute bottom-10">
+                08 AOÛT • 20 ANS • UN INSTANT POUR NOUS
+              </p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* --- CONTENU PRINCIPAL (CARTE) --- */}
+      {/* On cache la carte pendant le chargement pour éviter les flashs visuels */}
+      <motion.div 
+        className={`w-full max-w-md bg-neutral-900/90 border border-neutral-800 rounded-3xl p-6 shadow-2xl backdrop-blur-xl relative overflow-hidden flex flex-col min-h-[520px] justify-between transition-opacity duration-1000 ${step === 'loading' ? 'opacity-0' : 'opacity-100'}`}
+        initial={false}
+        animate={step !== 'loading' ? { y: 0, opacity: 1 } : { y: 50, opacity: 0 }}
+      >
         
         <AnimatePresence mode="wait">
           
-          {/* ÉTAPE 1 : Accueil */}
+          {/* ÉTAPE 1 : Accueil (Welcome) */}
           {step === 'welcome' && (
             <motion.div
               key="welcome"
@@ -381,7 +473,7 @@ export default function BirthdaySurprise() {
               </p>
 
               <div className="p-3 bg-neutral-900/90 border border-neutral-800 rounded-2xl text-left space-y-2 text-[11px] text-neutral-300 max-h-[160px] overflow-y-auto">
-                <p><strong>Separation:</strong> {answers.reason}</p>
+                <p><strong>Séparation:</strong> {answers.reason}</p>
                 <p><strong>Qualités:</strong> {answers.qualities}</p>
                 <p><strong>Défauts:</strong> {answers.defects}</p>
                 <p><strong>Attentes:</strong> {answers.expectations}</p>
@@ -400,7 +492,7 @@ export default function BirthdaySurprise() {
             </motion.div>
           )}
 
-          {/* ÉTAPE 6 : Destruit */}
+          {/* ÉTAPE 6 : Détruit (Destroyed) */}
           {step === 'destroyed' && (
             <motion.div
               key="destroyed"
@@ -419,7 +511,7 @@ export default function BirthdaySurprise() {
           )}
 
         </AnimatePresence>
-      </div>
+      </motion.div>
     </div>
   );
 }
