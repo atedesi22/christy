@@ -1,19 +1,28 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Sparkles, AlertTriangle, ShieldCheck, Send, MessageCircle, Music, CheckCircle2 } from 'lucide-react';
+import { Heart, Sparkles, AlertTriangle, ShieldCheck, Send, MessageCircle, Music, Volume2, VolumeX, CheckCircle2, Camera } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 // --- CONFIGURATION ---
 const YOUR_WHATSAPP_NUMBER = "237694865872"; 
 
-// Image globale pour toutes les étapes
+// Images
 const BACKGROUND_IMAGE_URL = "/christy.jpg";
+const POLAROID_IMAGE_URL = "/christy.jpg"; // Remplace par la photo de souvenir
+
+// Musique de fond (met ton fichier MP3 dans public/background-music.mp3)
+const AUDIO_URL = "/background-music.mp3";
 
 const CHAT_QUESTIONS = [
   {
     id: 'reason',
     botMsg: "Si tu devais mettre des mots simples dessus... Selon toi, quelle a été la vraie raison de notre séparation ? 💬",
     placeholder: "Ton ressenti avec tes propres mots..."
+  },
+  {
+    id: 'vision',
+    botMsg: "Avec du recul, comment voyais-tu notre relation avant la rupture, et comment la verrais-tu si on devait repartir à zéro ? 🔮",
+    placeholder: "Avant vs Après la rupture..."
   },
   {
     id: 'qualities',
@@ -59,10 +68,16 @@ export default function BirthdaySurprise() {
   const [countdown, setCountdown] = useState(90);
   const [isCounting, setIsCounting] = useState(false);
 
+  // Audio State
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const audioRef = useRef(null);
+
+  // Chatbot State
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   const [answers, setAnswers] = useState({});
   const [currentInput, setCurrentInput] = useState('');
   const [chatHistory, setChatHistory] = useState([]);
+  const [isBotTyping, setIsBotTyping] = useState(false);
   const chatEndRef = useRef(null);
 
   const triggerConfetti = () => {
@@ -73,6 +88,60 @@ export default function BirthdaySurprise() {
       colors: ['#f43f5e', '#fb7185', '#e11d48', '#ffffff', '#171717']
     });
   };
+
+  // Audio Controller
+  // const toggleAudio = () => {
+  //   if (audioRef.current) {
+  //     if (isPlayingAudio) {
+  //       audioRef.current.pause();
+  //       setIsPlayingAudio(false);
+  //     } else {
+  //       audioRef.current.play().then(() => setIsPlayingAudio(true)).catch(() => {});
+  //     }
+  //   }
+  // };
+
+//   const toggleAudio = () => {
+//   if (audioRef.current) {
+//     if (isPlayingAudio) {
+//       audioRef.current.pause();
+//       setIsPlayingAudio(false);
+//     } else {
+//       audioRef.current.volume = 85.5;
+//       audioRef.current
+//         .play()
+//         .then(() => setIsPlayingAudio(true))
+//         .catch((err) => console.error("Erreur de lecture :", err));
+//     }
+//   }
+// };
+
+
+  // Contrôleur du bouton (En haut à droite)
+const toggleAudio = () => {
+  if (!audioRef.current) return;
+
+  if (audioRef.current.paused) {
+    audioRef.current.volume = 0.5;
+    audioRef.current.play().catch((err) => {
+      console.warn("Erreur ou blocage de lecture :", err);
+    });
+  } else {
+    audioRef.current.pause();
+  }
+};
+
+// Démarrage au clic du Preloader
+const handleStartExperience = () => {
+  setStep('welcome');
+  
+  if (audioRef.current) {
+    audioRef.current.volume = 0.5;
+    audioRef.current.play().catch((err) => {
+      console.warn("Lecture bloquée au démarrage :", err);
+    });
+  }
+};
 
   useEffect(() => {
     let timer;
@@ -87,11 +156,41 @@ export default function BirthdaySurprise() {
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [chatHistory]);
+  }, [chatHistory, isBotTyping]);
 
-  const handleStartExperience = () => {
-    setStep('welcome');
-  };
+  // const handleStartExperience = () => {
+  //   setStep('welcome');
+  //   // Lancer la musique au premier clic utilisateur
+  //   if (audioRef.current) {
+  //     audioRef.current.volume = 0.5;
+  //     audioRef.current.play().then(() => setIsPlayingAudio(true)).catch(() => {});
+  //   }
+  // };
+
+//   const handleStartExperience = () => {
+//   setStep('welcome');
+
+//   // Lancer la musique au premier clic utilisateur avec gestion d'erreur propre
+//   if (audioRef.current) {
+//     audioRef.current.volume = 0.5;
+    
+//     // Charger explicitement avant la lecture
+//     audioRef.current.load();
+
+//     const playPromise = audioRef.current.play();
+
+//     if (playPromise !== undefined) {
+//       playPromise
+//         .then(() => {
+//           setIsPlayingAudio(true);
+//         })
+//         .catch((error) => {
+//           console.warn("Lecture automatique bloquée par le navigateur :", error);
+//           setIsPlayingAudio(false);
+//         });
+//     }
+//   }
+// };
 
   const handleStartMessage = () => {
     setStep('message');
@@ -104,18 +203,34 @@ export default function BirthdaySurprise() {
     triggerConfetti();
   };
 
+  const handleGoToMemory = () => {
+    setStep('memory');
+  };
+
   const handleStartChatbot = () => {
     setStep('chatbot');
     triggerConfetti();
-    setChatHistory([
-      { sender: 'bot', text: "Je suis tellement content que tu aies ouvert cette porte... 🖤" },
-      { sender: 'bot', text: CHAT_QUESTIONS[0].botMsg }
-    ]);
+    setIsBotTyping(true);
+    
+    setTimeout(() => {
+      setChatHistory([
+        { sender: 'bot', text: "Je suis tellement content que tu aies ouvert cette porte... 🖤" }
+      ]);
+      setIsBotTyping(true);
+      
+      setTimeout(() => {
+        setChatHistory((prev) => [
+          ...prev,
+          { sender: 'bot', text: CHAT_QUESTIONS[0].botMsg }
+        ]);
+        setIsBotTyping(false);
+      }, 1200);
+    }, 1000);
   };
 
   const handleSendAnswer = (e) => {
     e.preventDefault();
-    if (!currentInput.trim()) return;
+    if (!currentInput.trim() || isBotTyping) return;
 
     const currentQ = CHAT_QUESTIONS[currentQuestionIdx];
     const userMsg = currentInput.trim();
@@ -126,6 +241,7 @@ export default function BirthdaySurprise() {
     const newHistory = [...chatHistory, { sender: 'user', text: userMsg }];
     setChatHistory(newHistory);
     setCurrentInput('');
+    setIsBotTyping(true);
 
     if (currentQuestionIdx < CHAT_QUESTIONS.length - 1) {
       const nextIdx = currentQuestionIdx + 1;
@@ -135,21 +251,24 @@ export default function BirthdaySurprise() {
           ...prev,
           { sender: 'bot', text: CHAT_QUESTIONS[nextIdx].botMsg }
         ]);
-      }, 600);
+        setIsBotTyping(false);
+      }, 1400);
     } else {
       setTimeout(() => {
         setChatHistory((prev) => [
           ...prev,
           { sender: 'bot', text: "Merci du fond du cœur pour ta sincérité. C'est le plus beau cadeau. Voici le résumé de tes mots..." }
         ]);
-        setTimeout(() => setStep('summary'), 1500);
-      }, 600);
+        setIsBotTyping(false);
+        setTimeout(() => setStep('summary'), 1800);
+      }, 1400);
     }
   };
 
   const formatWhatsAppMessage = () => {
     let text = `✨ *RÉPONSES POUR NOS 20 ANS* ✨\n\n`;
     text += `🖤 *Raison séparation:* ${answers.reason || ''}\n\n`;
+    text += `🔮 *Vision Avant / Après:* ${answers.vision || ''}\n\n`;
     text += `🌟 *Mes qualités:* ${answers.qualities || ''}\n\n`;
     text += `💔 *Mes défauts:* ${answers.defects || ''}\n\n`;
     text += `🕊️ *Ce qu'elle aimerait qui change:* ${answers.expectations || ''}\n\n`;
@@ -160,13 +279,39 @@ export default function BirthdaySurprise() {
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 flex items-center justify-center p-4 font-sans select-none overflow-hidden relative">
       
-      {/* --- FOND PANNORAMIQUE DE MÊME STYLE POUR TOUTES LES ÉTAPES --- */}
+      {/* Element Audio HTML5 lié dynamiquement */}
+      <audio 
+        ref={audioRef} 
+        src={AUDIO_URL} 
+        loop 
+        preload="auto"
+        playsInline
+        onPlay={() => setIsPlayingAudio(true)}
+        onPause={() => setIsPlayingAudio(false)}
+      />
+
+      {/* Bouton contrôle musique discret en haut à droite */}
+      <button
+          onClick={toggleAudio}
+          className="fixed top-5 right-5 z-50 p-3 rounded-full bg-neutral-900/80 border border-neutral-700/60 text-rose-300 backdrop-blur-md shadow-lg hover:scale-110 transition-transform"
+          title={isPlayingAudio ? "Mettre en pause" : "Activer la musique"}
+        >
+        {isPlayingAudio ? (
+          <div className="flex items-center gap-1.5">
+            <Volume2 className="w-4 h-4 text-rose-400 animate-pulse" />
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping" />
+          </div>
+        ) : (
+          <VolumeX className="w-4 h-4 text-neutral-500" />
+        )}
+      </button>
+
+      {/* --- FOND PANORAMIQUE --- */}
       <div 
         className="absolute inset-0 bg-cover bg-center filter blur-sm scale-105 opacity-70 pointer-events-none"
         style={{ backgroundImage: `url(${BACKGROUND_IMAGE_URL})` }}
       />
       
-      {/* Voile sombre pour accentuer le contraste du texte et des cartes */}
       <div className="absolute inset-0 bg-neutral-950/40 pointer-events-none" />
 
       {/* --- PRELOADER --- */}
@@ -197,7 +342,6 @@ export default function BirthdaySurprise() {
                 </h1>
               </div>
 
-              {/* BOUTON REBONDISSANT SENSUEL */}
               <motion.button
                 variants={sensualBounceVariants}
                 animate="animate"
@@ -275,7 +419,7 @@ export default function BirthdaySurprise() {
             </motion.div>
           )}
 
-          {/* ÉTAPE 2 : Message ultime + compte à rebours */}
+          {/* ÉTAPE 2 : Message ultime */}
           {step === 'message' && (
             <motion.div
               key="message"
@@ -326,7 +470,7 @@ export default function BirthdaySurprise() {
             </motion.div>
           )}
 
-          {/* ÉTAPE 3 : Révélation + Bouton Recommencer */}
+          {/* ÉTAPE 3 : Révélation */}
           {step === 'saved' && (
             <motion.div
               key="saved"
@@ -353,13 +497,61 @@ export default function BirthdaySurprise() {
                 <motion.button
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
-                  onClick={handleStartChatbot}
+                  onClick={handleGoToMemory}
                   className="w-full py-4 bg-gradient-to-r from-rose-900 via-rose-950 to-neutral-900 border border-rose-700/60 text-rose-100 rounded-2xl font-medium text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl shadow-rose-950/60"
                 >
-                  <Sparkles className="w-4 h-4 text-rose-400" />
-                  Et si on réécrivait la suite ?
+                  <Camera className="w-4 h-4 text-rose-400" />
+                  Regarder un instant souvenir
                 </motion.button>
               </div>
+            </motion.div>
+          )}
+
+          {/* ÉTAPE 3.5 : Section Instant Souvenir (Polaroid) */}
+          {step === 'memory' && (
+            <motion.div
+              key="memory"
+              initial={{ opacity: 0, scale: 0.92 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.92 }}
+              className="text-center space-y-5 my-auto"
+            >
+              <div className="space-y-1">
+                <span className="text-[10px] font-mono tracking-widest text-rose-400 uppercase">INSTANT SOUVENIR</span>
+                <h2 className="text-lg font-light text-neutral-100">Une empreinte du passé...</h2>
+              </div>
+
+              {/* Photo cadre Polaroid */}
+              <motion.div 
+                whileHover={{ rotate: 0, scale: 1.03 }}
+                className="bg-neutral-100 p-3 pt-3 pb-6 rounded-lg shadow-2xl rotate-2 transition-transform duration-300 mx-auto max-w-[240px] text-neutral-900"
+              >
+                <div className="relative aspect-square overflow-hidden rounded-sm bg-neutral-900">
+                  <img 
+                    src={POLAROID_IMAGE_URL} 
+                    alt="Souvenir" 
+                    className="w-full h-full object-cover filter contrast-105 brightness-95"
+                  />
+                  <div className="absolute inset-0 bg-rose-950/10 pointer-events-none" />
+                </div>
+                <p className="mt-3 text-xs font-serif italic text-neutral-700">
+                  Quelque part dans le temps... ✨
+                </p>
+              </motion.div>
+
+              <p className="text-xs text-neutral-400 font-light italic px-2">
+                "Certains souvenirs refusent de s'effacer, peu importe la distance."
+              </p>
+
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={handleStartChatbot}
+                className="w-full py-3.5 bg-gradient-to-r from-rose-900 via-rose-950 to-neutral-900 border border-rose-700/60 text-rose-100 rounded-2xl font-medium text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl shadow-rose-950/60 mt-2"
+              >
+                <Sparkles className="w-4 h-4 text-rose-400" />
+                Et si on réécrivait la suite ?
+              </motion.button>
             </motion.div>
           )}
 
@@ -391,6 +583,7 @@ export default function BirthdaySurprise() {
                 />
               </div>
 
+              {/* Messages du Chatbot */}
               <div className="flex-1 overflow-y-auto space-y-3 py-3 pr-1 text-xs leading-relaxed">
                 {chatHistory.map((msg, idx) => (
                   <motion.div
@@ -410,6 +603,21 @@ export default function BirthdaySurprise() {
                     </div>
                   </motion.div>
                 ))}
+
+                {/* Animation d'écriture (Typing Effect Indicator) */}
+                {isBotTyping && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex justify-start"
+                  >
+                    <div className="bg-neutral-800/80 border border-neutral-700/50 text-neutral-400 p-3 rounded-2xl rounded-bl-none flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 bg-rose-400 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                      <span className="w-1.5 h-1.5 bg-rose-400 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                      <span className="w-1.5 h-1.5 bg-rose-400 rounded-full animate-bounce" />
+                    </div>
+                  </motion.div>
+                )}
                 <div ref={chatEndRef} />
               </div>
 
@@ -418,12 +626,13 @@ export default function BirthdaySurprise() {
                   type="text"
                   value={currentInput}
                   onChange={(e) => setCurrentInput(e.target.value)}
+                  disabled={isBotTyping}
                   placeholder={CHAT_QUESTIONS[currentQuestionIdx]?.placeholder || "Ton message..."}
-                  className="flex-1 bg-neutral-900 border border-neutral-800 focus:border-rose-800 text-neutral-200 rounded-xl px-3.5 py-2.5 text-xs outline-none transition-colors"
+                  className="flex-1 bg-neutral-900 border border-neutral-800 focus:border-rose-800 text-neutral-200 rounded-xl px-3.5 py-2.5 text-xs outline-none transition-colors disabled:opacity-50"
                 />
                 <button
                   type="submit"
-                  disabled={!currentInput.trim()}
+                  disabled={!currentInput.trim() || isBotTyping}
                   className="p-2.5 bg-rose-900/80 hover:bg-rose-800 border border-rose-700 text-rose-200 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                 >
                   <Send className="w-4 h-4" />
@@ -454,6 +663,7 @@ export default function BirthdaySurprise() {
 
               <div className="p-3 bg-neutral-900/90 border border-neutral-800 rounded-2xl text-left space-y-2 text-[11px] text-neutral-300 max-h-[160px] overflow-y-auto">
                 <p><strong>Séparation:</strong> {answers.reason}</p>
+                <p><strong>Vision (Avant/Après):</strong> {answers.vision}</p>
                 <p><strong>Qualités:</strong> {answers.qualities}</p>
                 <p><strong>Défauts:</strong> {answers.defects}</p>
                 <p><strong>Attentes:</strong> {answers.expectations}</p>
